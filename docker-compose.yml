@@ -1,0 +1,50 @@
+version: '3'
+services:
+  #MySQL
+  authentication-db:
+    image: mysql:latest
+    container_name: mysql-db
+    environment:
+      MYSQL_DATABASE: imetrix_development
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: DeveloperSC86
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  #Fast API - Administration
+  api-admin:
+    build: './api-admin'
+    ports:
+      - "3000:3000"
+
+  #Fast API - Boards
+  api-boards:
+    build: './api-boards'
+    ports:
+      - "3001:3001"
+  
+  #Fast API - Authentication
+  api-authentication:
+    build: './ISA_2_API_Authentication'
+    ports:
+      - "3003:3003"
+    depends_on:
+      - authentication-db
+
+  #NGNIX - API Gateway
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api-boards
+      - api-admin
+      - api-authentication
+volumes:
+  mysql-data:
